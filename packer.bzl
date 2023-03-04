@@ -1,4 +1,4 @@
-load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME")
+load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME", "PACKER_GLOBAL_SUBS")
 
 #load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 #
@@ -102,67 +102,37 @@ def _packer_impl(ctx):
         files = depset([output_file]),
     )
 
-packer = rule(
+
+def _packer2_impl(ctx):
+    print("overwrite: " + str(ctx.attr.overwrite))
+    print("packerfile: " + str(ctx.attr.packerfile))
+    print("var_file: " + str(ctx.attr.var_file))
+    print("packer: " + str(ctx.attr._packer))
+    print("subst: " + str(PACKER_GLOBAL_SUBS))
+
+    return []
+
+packer2 = rule(
+    implementation = _packer2_impl,
     attrs = {
-        #        "config_file": attr.label(
-        #            mandatory = True,
-        #        ),
         "overwrite": attr.bool(
-            mandatory = False,
+            default = False
         ),
-        "tars": attr.label_list(
+        "packerfile": attr.label(
+            allow_single_file = True,
+            mandatory = True
         ),
-        "scripts": attr.label_list(
-            allow_files = True,
-        ),
-        "builders": attr.string_list(),
-        "provisioners": attr.string_list(),
-        "files": attr.label_list(
-            allow_files = True,
+        "var_file": attr.label(
+            allow_single_file = True,
         ),
         "substitutions": attr.string_dict(),
-        "bootmedia": attr.label(),
-        "auxmedia": attr.label(),
-        "bootchecksum": attr.string(),
-        "http_dir": attr.label_list(),
-        "graphics": attr.string(
-            default = "gtk",  # not sure if this is going to need to be host execution platform specific
-        ),
-        "memory": attr.int(
-            default = 1024,
-        ),
-        #        "hostname": attr.string(
-        #
-        #        ),
-        "username": attr.string(
-            default = "vagrant",
-        ),
-        "password": attr.string(
-            default = "vagrant",
-        ),
-        "kickstart": attr.label_list(
-            allow_files = True,
-        ),
-        "cpu": attr.string(
-            default = "host",
-        ),
-        "smp": attr.string(
-            default = "cpus=1",
-        ),
-        "debug": attr.bool(
-            default = False,
-        ),
-        "_deployment_script_template": attr.label(
+        "_deployment_script": attr.label(
             allow_single_file = True,
-            default = "//containers/packer/templates:my_deploy_packer.py",
+            default = "//:packer2.py"
         ),
         "_packer": attr.label(
             allow_single_file = True,
-            default = "@packer_osx//:" + PACKER_BIN_NAME
-        ),
-    },
-    executable = True,
-    implementation = _packer_impl,
+            default = "@packer//:" + PACKER_BIN_NAME
+        )
+    }
 )
-
-
