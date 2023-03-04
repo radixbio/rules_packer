@@ -29,12 +29,14 @@ def _packer_configure_impl(repository_ctx):
     PACKER_ARCH="{arch}"
     PACKER_SHAS={packer_shas}
     PACKER_BIN_NAME="{packer_bin_name}"
+    PACKER_GLOBAL_SUBS={global_substitutions}
     """.format(
         packer_version = packer_version,
         packer_shas = str(os_arch_sha),
         os = repository_ctx.os.name,
         arch = repository_ctx.os.arch,
-        packer_bin_name = packer_bin_name
+        packer_bin_name = packer_bin_name,
+        global_substitutions = repository_ctx.attr.global_substitutions
     ).replace(" ", "").replace(":", ": ")
 
     repository_ctx.file("config.bzl", config_file_content)
@@ -45,11 +47,13 @@ _packer_configure = repository_rule(
     attrs = {
         "packer_version": attr.string(
             mandatory = True
-        )
+        ),
+        "global_substitutions": attr.string_dict(),
     }
 )
-def packer_configure(packer_version):
+def packer_configure(packer_version, global_substitutions):
     _packer_configure(
         name = "com_github_rules_packer_config",
-        packer_version = packer_version
+        packer_version = packer_version,
+        global_substitutions = global_substitutions
     )
