@@ -107,8 +107,37 @@ def _packer2_impl(ctx):
     print("overwrite: " + str(ctx.attr.overwrite))
     print("packerfile: " + str(ctx.attr.packerfile))
     print("var_file: " + str(ctx.attr.var_file))
-    print("packer: " + str(ctx.attr._packer))
+    print("packer: " + str(dir(ctx.file.packerfile)))
     print("subst: " + str(PACKER_GLOBAL_SUBS))
+
+    name = ctx.attr.name
+    packerfile = ctx.actions.declare_file(name + ".pkr")
+
+    command = []
+    command.append(ctx.file._packer.path)
+    if ctx.attr.overwrite:
+        command.append("-force")
+
+    if ctx.attr.var_file:
+        var_file = ctx.actions.declare_file(name + ".var")
+        ctx.actions.expand_template(
+            template = ctx.file.var_file,
+            output = var_file,
+            substitutions = PACKER_GLOBAL_SUBS # TODO local subs
+        )
+        command.append("-var-file=" + var_file.path)
+
+
+
+    ctx.actions.expand_template(
+        template = ctx.file.packerfile,
+        output = packerfile,
+        substitutions = PACKER_GLOBAL_SUBS # TODO local subs
+    )
+    command.append(packerfile.path)
+    print(command)
+
+
 
     return []
 
