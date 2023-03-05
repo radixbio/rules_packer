@@ -28,7 +28,7 @@
       "iso_urls": [
         "{{ user `iso_url` }}"
       ],
-      "output_directory": "output-{{ user `vm_name` }}",
+      "output_directory": "output",
       "qemuargs": [
         [
           "-m",

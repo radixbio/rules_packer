@@ -1,4 +1,4 @@
-load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME", "PACKER_GLOBAL_SUBS")
+load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME", "PACKER_GLOBAL_SUBS", "PACKER_DEBUG")
 
 #load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 #
@@ -112,9 +112,15 @@ def _packer2_impl(ctx):
 
     name = ctx.attr.name
     packerfile = ctx.actions.declare_file(name + ".pkr")
+    var_file = None
 
     command = []
-    command.append(ctx.file._packer.path)
+    if ctx.attr.debug:
+        command.append("PACKER_LOG=1")
+
+#    command.append(ctx.file._packer.path)
+    command.append("build")
+
     if ctx.attr.overwrite:
         command.append("-force")
 
@@ -138,8 +144,21 @@ def _packer2_impl(ctx):
     print(command)
 
 
+    out = ctx.actions.declare_directory("output")
+    print(ctx.build_file_path)
+    print(ctx.bin_dir.path)
+    ctx.actions.run(
+#        executable = " ".join(["cd", ctx.build_file_path, "&&"] + command),
+#        executable = ctx.file._packer,
+#        arguments = command,
+        executable = "tree",
+        inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
+        outputs = [out],
+    )
 
-    return []
+
+
+    return [DefaultInfo(files=depset([out]))]
 
 packer2 = rule(
     implementation = _packer2_impl,
@@ -155,9 +174,15 @@ packer2 = rule(
             allow_single_file = True,
         ),
         "substitutions": attr.string_dict(),
+        "deps": attr.label_list(
+            allow_files = True
+        ),
         "_deployment_script": attr.label(
             allow_single_file = True,
             default = "//:packer2.py"
+        ),
+        "debug": attr.bool(
+            default = PACKER_DEBUG
         ),
         "_packer": attr.label(
             allow_single_file = True,

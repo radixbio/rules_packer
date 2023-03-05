@@ -8,7 +8,8 @@ exports_files([
 
 packer2(
     name = "ubuntu1804",
-    overwrite = False,
+    overwrite = True,
     packerfile = ":ubuntu2.json",
-    var_file = ":ubuntu1804.json"
+    var_file = ":ubuntu1804.json",
+    deps = glob(["scripts/**"]) + ["http/preseed.cfg"]
 )

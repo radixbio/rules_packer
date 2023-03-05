@@ -10,5 +10,6 @@
   "preseed" : "preseed.cfg",
   "boot_command_prefix": "<esc><esc><enter><wait>",
   "version" : "1",
-  "headless" : "false"
+  "headless" : "false",
+  "prefix": ""
 }
