@@ -9,7 +9,8 @@ packer_configure(
     packer_version = "1.8.6",
     global_substitutions = {
         '"{$foo}"': "bar"
-    }
+    },
+    debug = False
 )
 
 
