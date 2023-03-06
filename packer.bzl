@@ -173,7 +173,9 @@ packer2 = rule(
         "var_file": attr.label(
             allow_single_file = True,
         ),
-        "substitutions": attr.string_dict(),
+        "substitutions": attr.string_dict(), # NOTE: Substitutes in the templates
+        "vars": attr.string_dict(), # NOTE: passed as CLI args
+        "env": attr.string_dict(), # NOTE: passed to the packer command
         "deps": attr.label_list(
             allow_files = True
         ),
