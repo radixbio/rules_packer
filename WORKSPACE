@@ -17,3 +17,7 @@ packer_configure(
 load("@com_github_rules_packer//:packer_dependencies.bzl", "packer_dependencies")
 
 packer_dependencies()
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+
+aspect_bazel_lib_dependencies()
