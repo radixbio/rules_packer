@@ -10,7 +10,7 @@ packer_configure(
     global_substitutions = {
         '"{$foo}"': "bar"
     },
-    debug = False
+    debug = True
 )
 
 
