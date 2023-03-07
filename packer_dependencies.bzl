@@ -12,3 +12,11 @@ def packer_dependencies():
         sha256 = PACKER_SHAS[PACKER_OS][PACKER_ARCH],
         build_file_content = packer_exports
      )
+
+    maybe(
+        http_archive,
+        name = "aspect_bazel_lib",
+        sha256 = "2518c757715d4f5fc7cc7e0a68742dd1155eaafc78fb9196b8a18e13a738cea2",
+        strip_prefix = "bazel-lib-1.28.0",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v1.28.0/bazel-lib-v1.28.0.tar.gz",
+    )
