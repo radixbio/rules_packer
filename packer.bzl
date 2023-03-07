@@ -104,14 +104,10 @@ def _packer_impl(ctx):
 
 
 def _packer2_impl(ctx):
-    print("overwrite: " + str(ctx.attr.overwrite))
-    print("packerfile: " + str(ctx.attr.packerfile))
-    print("var_file: " + str(ctx.attr.var_file))
-    print("packer: " + str(dir(ctx.file.packerfile)))
-    print("subst: " + str(PACKER_GLOBAL_SUBS))
-
+    # Declare our output directory (this may not be a thing for all builders, but it is for QEMU)
     out = ctx.actions.declare_directory("output")
 
+    # declare our substitutions, merge with the global map, and splice in output / $(locations)
     substitutions = {}
     substitutions.update(PACKER_GLOBAL_SUBS)
     subst_items = {k: v for k, v in ctx.attr.substitutions.items()}
@@ -119,28 +115,30 @@ def _packer2_impl(ctx):
         subst_items.update({"{output}": out.path})
     substitutions.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in subst_items.items()})
 
-    print(substitutions)
+    # declare our environent, splice in output / $(locations)
+    env = {}
+    env_items = {k: v for k, v in ctx.attr.env.items()}
+    if env_items.get("{output}") == "$(location output)":
+        env_items.update({"{output}": out.path})
+    env.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in env_items.items()})
 
-    name = ctx.attr.name
-    packerfile = ctx.actions.declare_file(name + ".pkr")
-    var_file = None
-
+    # packer build...
     args = []
-    env = {k: v for k, v in ctx.args.env.items()}
-    env.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in env.items()})
-
-#    args.append(ctx.file._packer.path)
     args.append("build")
 
+    # which may need to be overwritten...
     if ctx.attr.overwrite:
         args.append("-force")
 
+    # packer has a debug thing ...
     if ctx.attr.debug:
         env.update({"PACKER_LOG": "1"})
         args.append("-debug")
 
+    # and support for var files with $(location)
+    var_file = None
     if ctx.attr.var_file:
-        var_file = ctx.actions.declare_file(name + ".var")
+        var_file = ctx.actions.declare_file(ctx.attr.name + ".var")
         ctx.actions.expand_template(
             template = ctx.file.var_file,
             output = var_file,
@@ -148,8 +146,8 @@ def _packer2_impl(ctx):
         )
         args.append("-var-file=" + var_file.path)
 
-
-
+    # as well as the actual packerfile with $(location)
+    packerfile = ctx.actions.declare_file(ctx.attr.name + ".pkr")
     ctx.actions.expand_template(
         template = ctx.file.packerfile,
         output = packerfile,
@@ -157,22 +155,15 @@ def _packer2_impl(ctx):
     )
     args.append(packerfile.path)
 
-    print(args)
-
+    # NOTE this is done due to weird bazel args quoting when the input has an = or > in it
     run = ctx.actions.declare_file("run")
-    ctx.actions.write(output = run, content = "PACKER_LOG=1 " + ctx.file._packer.path + " " + " ".join(args), is_executable=True)
+    ctx.actions.write(
+        output = run,
+        content = ctx.file._packer.path + " " + " ".join(args),
+        is_executable = True
+    )
 
-#    wd = ctx.build_file_path[:-6] # /BUILD
-#    print(ctx.files.deps)
-#    print(ctx.files.deps[0].path)
-#
-#    res_cp = " && ".join([ "mkdir -p `dirname " + ctx.bin_dir.path + "/" + x.path + "` && " + "cp -r " + x.path + " " + ctx.bin_dir.path + "/" + x.path for x in ctx.files.deps])
-#    print(res_cp)
     ctx.actions.run(
-        #arguments = [args],
-        #executable = ctx.file._packer,
-        #executable = "tree",
-        #executable = [ctx.file._packer.path + " " + " ".join(args)],
         executable = run,
         env = env,
         inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
@@ -180,8 +171,6 @@ def _packer2_impl(ctx):
         use_default_shell_env = True,
         tools = [ctx.file._packer]
     )
-
-
 
     return [DefaultInfo(files=depset([out]))]
 
