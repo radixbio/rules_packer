@@ -155,14 +155,11 @@ def _packer2_impl(ctx):
         substitutions = substitutions
     )
     args.append(packerfile.path)
-    args.append("|")
-    args.append("tee")
-    args.append("output.log")
 
     print(args)
 
     run = ctx.actions.declare_file("run")
-    ctx.actions.write(output = run, content = ctx.file._packer.path + " " + " ".join(args), is_executable=True)
+    ctx.actions.write(output = run, content = "PACKER_LOG=1 " + ctx.file._packer.path + " " + " ".join(args), is_executable=True)
 
 #    wd = ctx.build_file_path[:-6] # /BUILD
 #    print(ctx.files.deps)

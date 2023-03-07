@@ -3,6 +3,7 @@
   "preseed" : "{preseed}",
   "boot_command_prefix": "<esc><esc><enter><wait>",
   "headless" : "{headless}",
+  "iso_url": "{iso}",
   "scripts": "{scripts}",
   "output": "{output}",
   "http_dir": "{http_dir}"
