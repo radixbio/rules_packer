@@ -29,7 +29,7 @@
       "output_directory": "{{ user `output` }}",
       "qemuargs": [
         ["-m", "{{ user `memory` }}"],
-        ["-display", "gtk"],
+        ["-display", "{{ user `display` }}"],
         ["-vga", "qxl"],
         ["-machine", "accel=kvm"],
         ["-cpu", "host"],
@@ -66,6 +66,7 @@
     "boot_command_prefix": "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
     "cpus": "1",
     "disk_size": "16384",
+    "display": "gtk",
     "ftp_proxy": "{{env `ftp_proxy`}}",
     "headless": "",
     "hostname": "vagrant",

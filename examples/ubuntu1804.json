@@ -6,5 +6,6 @@
   "iso_url": "{iso}",
   "scripts": "{scripts}",
   "output": "{output}",
-  "http_dir": "{http_dir}"
+  "http_dir": "{http_dir}",
+  "display": "none"
 }
