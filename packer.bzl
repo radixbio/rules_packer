@@ -1,5 +1,5 @@
 load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME", "PACKER_GLOBAL_SUBS", "PACKER_DEBUG")
-
+load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations")
 #load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 #
 #def assemble_packer(
@@ -110,50 +110,77 @@ def _packer2_impl(ctx):
     print("packer: " + str(dir(ctx.file.packerfile)))
     print("subst: " + str(PACKER_GLOBAL_SUBS))
 
+    out = ctx.actions.declare_directory("output")
+
+    substitutions = {}
+    substitutions.update(PACKER_GLOBAL_SUBS)
+    subst_items = {k: v for k, v in ctx.attr.substitutions.items()}
+    if subst_items.get("{output}") == "$(location output)":
+        subst_items.update({"{output}": out.path})
+    substitutions.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in subst_items.items()})
+
+    print(substitutions)
+
     name = ctx.attr.name
     packerfile = ctx.actions.declare_file(name + ".pkr")
     var_file = None
 
-    command = []
-    if ctx.attr.debug:
-        command.append("PACKER_LOG=1")
+    args = []
+    env = {}
 
-#    command.append(ctx.file._packer.path)
-    command.append("build")
+#    args.append(ctx.file._packer.path)
+    args.append("build")
 
     if ctx.attr.overwrite:
-        command.append("-force")
+        args.append("-force")
+
+    if ctx.attr.debug:
+        env.update({"PACKER_LOG": "1"})
+        args.append("-debug")
 
     if ctx.attr.var_file:
         var_file = ctx.actions.declare_file(name + ".var")
         ctx.actions.expand_template(
             template = ctx.file.var_file,
             output = var_file,
-            substitutions = PACKER_GLOBAL_SUBS # TODO local subs
+            substitutions = substitutions
         )
-        command.append("-var-file=" + var_file.path)
+        args.append("-var-file=" + var_file.path)
 
 
 
     ctx.actions.expand_template(
         template = ctx.file.packerfile,
         output = packerfile,
-        substitutions = PACKER_GLOBAL_SUBS # TODO local subs
+        substitutions = substitutions
     )
-    command.append(packerfile.path)
-    print(command)
+    args.append(packerfile.path)
+    args.append("|")
+    args.append("tee")
+    args.append("output.log")
 
+    print(args)
 
-    out = ctx.actions.declare_directory("output")
-    print(ctx.build_file_path)
-    print(ctx.bin_dir.path)
+    run = ctx.actions.declare_file("run")
+    ctx.actions.write(output = run, content = ctx.file._packer.path + " " + " ".join(args), is_executable=True)
+
+#    wd = ctx.build_file_path[:-6] # /BUILD
+#    print(ctx.files.deps)
+#    print(ctx.files.deps[0].path)
+#
+#    res_cp = " && ".join([ "mkdir -p `dirname " + ctx.bin_dir.path + "/" + x.path + "` && " + "cp -r " + x.path + " " + ctx.bin_dir.path + "/" + x.path for x in ctx.files.deps])
+#    print(res_cp)
     ctx.actions.run(
-#        executable = " ".join(["cd", ctx.build_file_path, "&&"] + command),
-#        executable = ctx.file._packer,
-#        arguments = command,
-        executable = "tree",
+        #arguments = [args],
+        #executable = ctx.file._packer,
+        #executable = "tree",
+        #executable = [ctx.file._packer.path + " " + " ".join(args)],
+        executable = run,
+        env = env,
         inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
         outputs = [out],
+        use_default_shell_env = True,
+        tools = [ctx.file._packer]
     )
 
 
