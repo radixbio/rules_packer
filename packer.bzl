@@ -126,7 +126,8 @@ def _packer2_impl(ctx):
     var_file = None
 
     args = []
-    env = {}
+    env = {k: v for k, v in ctx.args.env.items()}
+    env.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in env.items()})
 
 #    args.append(ctx.file._packer.path)
     args.append("build")
