@@ -1,0 +1,34 @@
+{
+  "builders": [
+    {
+      "disk_image": true,
+      "iso_url": "file://{{ user `pwd` }}/output/ubuntu1804",
+      "iso_checksum": "sha256:cd0ce26ab336e332ee545336bf9ee10367fad8ebefbbb0fe58255708072e54fe",
+      "headless": false,
+      "type": "qemu",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "output_directory": "stage2",
+      "qemuargs": [
+        ["-m", "{{ user `memory` }}"],
+        ["-display", "{{ user `display` }}"],
+        ["-vga", "qxl"],
+        ["-machine", "accel=kvm"],
+        ["-cpu", "host"],
+        ["-smp", "cpus={{ user `cpus`}}"]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["echo foo"]
+    }
+  ],
+  "variables": {
+    "pwd": "{{ env `PWD` }}",
+    "memory": "512",
+    "cpus": "1",
+    "display": "gtk"
+  }
+}
