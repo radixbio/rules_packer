@@ -169,7 +169,7 @@ def _packer2_impl(ctx):
         inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
         outputs = [out],
         use_default_shell_env = True,
-        mnemonic = "Packer"
+        mnemonic = "Packer",
         tools = [ctx.file._packer]
     )
 
