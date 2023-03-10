@@ -169,6 +169,7 @@ def _packer2_impl(ctx):
         inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
         outputs = [out],
         use_default_shell_env = True,
+        mnemonic = "Packer"
         tools = [ctx.file._packer]
     )
 
@@ -202,7 +203,7 @@ packer2 = rule(
         ),
         "_packer": attr.label(
             allow_single_file = True,
-            default = "@packer//:" + PACKER_BIN_NAME
+            default = "@packer//:" + PACKER_BIN_NAME # TODO: Toolchain here?
         )
     }
 )
