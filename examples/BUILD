@@ -22,3 +22,18 @@ packer2(
         "{iso}": "file://{{env `PWD`}}/$(location @ubuntu18046_x64//file:file)"
     }
 )
+
+
+packer2(
+    name = "ubuntu1804_w_update",
+    overwrite = True,
+    packerfile = ":ubuntu_update.json",
+    var_file = ":ubuntu_update.var.json",
+    deps = [":ubuntu1804"],
+    substitutions = {
+        "{headless}": "false" if PACKER_DEBUG else "true",
+        "{output}": "$(location output)",
+        "{iso_url}": "file://{{ env `PWD` }}/$(location ubuntu1804)/ubuntu1804",
+        "{name}": "ubuntu1804_w_update"
+    }
+)
