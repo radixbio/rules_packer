@@ -2,13 +2,14 @@
   "builders": [
     {
       "disk_image": true,
-      "iso_url": "file://{{ user `pwd` }}/output/ubuntu1804",
-      "iso_checksum": "sha256:cd0ce26ab336e332ee545336bf9ee10367fad8ebefbbb0fe58255708072e54fe",
-      "headless": false,
+      "iso_url": "{{ user `iso_url` }}",
+      "iso_checksum": "sha256:5943ad657bc61d94a362ffd578d9c351fed59e0d4e0b04ca62a16acd50ce8837",
+      "headless": "{{ user `headless` }}",
       "type": "qemu",
+      "vm_name": "{{ user `vm_name` }}",
       "ssh_username": "vagrant",
       "ssh_password": "vagrant",
-      "output_directory": "stage2",
+      "output_directory": "{{ user `output` }}",
       "qemuargs": [
         ["-m", "{{ user `memory` }}"],
         ["-display", "{{ user `display` }}"],
@@ -26,9 +27,12 @@
     }
   ],
   "variables": {
-    "pwd": "{{ env `PWD` }}",
+    "iso_url": "file://{{ env `PWD` }}/output/ubuntu1804",
     "memory": "512",
     "cpus": "1",
-    "display": "gtk"
+    "display": "gtk",
+    "headless": "true",
+    "output": "stage2",
+      "vm_name": "ubuntu_stage2"
   }
 }
