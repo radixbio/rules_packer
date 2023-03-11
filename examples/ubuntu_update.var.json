@@ -1,0 +1,7 @@
+{
+    "headless": "{headless}",
+    "iso_url": "{iso_url}",
+    "output": "{output}",
+    "display": "none",
+    "vm_name": "{name}"
+}
