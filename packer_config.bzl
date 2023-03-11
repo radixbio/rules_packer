@@ -1,3 +1,24 @@
+_LUT = {
+    "macosx" : "darwin",
+    "aarch64": "arm64",
+    "linux": "linux",
+    "windows": "windows",
+    "x86_64": "amd64",
+    "i386": "386",       # Untested
+    "arm": "arm",
+    "ppc64": "ppc64le",   # Untested
+    "freebsd": "freebsd", # Untested
+    "netbsd": "netbsd",   # Untested
+    "openbsd": "openbsd", # Untested
+    "solaris": "solaris"
+}
+
+def _java_prop_to_hashicorp(str):
+    return _LUT[str]
+
+def _hashicorp_to_java_prop(str):
+    return {v: k for k, v in _LUT.items()}[str]
+
 def _packer_configure_impl(repository_ctx):
     packer_version = repository_ctx.attr.packer_version
     repository_ctx.download(
@@ -13,9 +34,9 @@ def _packer_configure_impl(repository_ctx):
     for d in shas:
         (os, inner) = d.popitem()
         (arch, sha) = inner.popitem()
-        existing_inner = os_arch_sha.get(os, {arch: sha})
-        existing_inner.update([(arch, sha)])
-        os_arch_sha.update([(os, existing_inner)])
+        existing_inner = os_arch_sha.get(_hashicorp_to_java_prop(os), {_hashicorp_to_java_prop(arch): sha})
+        existing_inner.update([(_hashicorp_to_java_prop(arch), sha)])
+        os_arch_sha.update([(_hashicorp_to_java_prop(os), existing_inner)])
 
     packer_bin_name = None
     if repository_ctx.os.name == "windows":
