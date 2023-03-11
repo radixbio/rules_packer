@@ -105,7 +105,7 @@ def _packer_impl(ctx):
 
 def _packer2_impl(ctx):
     # Declare our output directory (this may not be a thing for all builders, but it is for QEMU)
-    out = ctx.actions.declare_directory("output")
+    out = ctx.actions.declare_directory(ctx.attr.name)
 
     # declare our substitutions, merge with the global map, and splice in output / $(locations)
     substitutions = {}
@@ -156,7 +156,7 @@ def _packer2_impl(ctx):
     args.append(packerfile.path)
 
     # NOTE this is done due to weird bazel args quoting when the input has an = or > in it
-    run = ctx.actions.declare_file("run")
+    run = ctx.actions.declare_file("run-"+ctx.attr.name)
     ctx.actions.write(
         output = run,
         content = ctx.file._packer.path + " " + " ".join(args),
