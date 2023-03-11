@@ -5,11 +5,13 @@ load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_S
 def packer_dependencies():
     packer_exports = 'exports_files(["' + PACKER_BIN_NAME + '"])'
 
+    (packer_url, packer_sha) = PACKER_SHAS[PACKER_OS][PACKER_ARCH]
+    print(packer_url)
     maybe(
         http_archive,
         name = "packer",
-        url = "https://releases.hashicorp.com/packer/{version}/packer_{version}_{os}_{arch}.zip".format(version = PACKER_VERSION, os = PACKER_OS, arch = PACKER_ARCH),
-        sha256 = PACKER_SHAS[PACKER_OS][PACKER_ARCH],
+        url = packer_url,
+        sha256 = packer_sha,
         build_file_content = packer_exports
      )
 

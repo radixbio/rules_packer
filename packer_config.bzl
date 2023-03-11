@@ -13,6 +13,9 @@ _LUT = {
     "solaris": "solaris"
 }
 
+
+_PKR_URL = "https://releases.hashicorp.com/packer/{version}/packer_{version}_{os}_{arch}.zip"
+
 def _java_prop_to_hashicorp(str):
     return _LUT[str]
 
@@ -34,8 +37,13 @@ def _packer_configure_impl(repository_ctx):
     for d in shas:
         (os, inner) = d.popitem()
         (arch, sha) = inner.popitem()
-        existing_inner = os_arch_sha.get(_hashicorp_to_java_prop(os), {_hashicorp_to_java_prop(arch): sha})
-        existing_inner.update([(_hashicorp_to_java_prop(arch), sha)])
+        url = _PKR_URL.format(
+            version = packer_version,
+            os = os,
+            arch = arch
+        )
+        existing_inner = os_arch_sha.get(_hashicorp_to_java_prop(os), {_hashicorp_to_java_prop(arch): (url, sha)})
+        existing_inner.update([(_hashicorp_to_java_prop(arch), (url, sha))])
         os_arch_sha.update([(_hashicorp_to_java_prop(os), existing_inner)])
 
     packer_bin_name = None
@@ -60,7 +68,7 @@ def _packer_configure_impl(repository_ctx):
         packer_bin_name = packer_bin_name,
         global_substitutions = repository_ctx.attr.global_substitutions,
         debug = repository_ctx.attr.debug
-    ).replace(" ", "").replace(":", ": ")
+    ).replace(" ", "")
 
     repository_ctx.file("config.bzl", config_file_content)
     repository_ctx.file("BUILD")
