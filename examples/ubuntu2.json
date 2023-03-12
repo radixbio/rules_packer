@@ -30,9 +30,9 @@
       "qemuargs": [
         ["-m", "{{ user `memory` }}"],
         ["-display", "{{ user `display` }}"],
-        ["-vga", "qxl"],
-        ["-machine", "accel=kvm"],
-        ["-cpu", "host"],
+        ["-vga", "{{ user `vga` }}"],
+        ["-machine", "accel={{ user `accel` }}"],
+        ["-cpu", "{{ user `cpu` }}"],
         ["-smp", "cpus={{ user `cpus`}}"]
       ],
       "shutdown_command": "echo '{{ user `ssh_password` }}'|sudo -S shutdown -P now",
@@ -63,10 +63,13 @@
     }
   ],
   "variables": {
+    "accel": "kvm",
     "boot_command_prefix": "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
     "cpus": "1",
+    "cpu": "max",
     "disk_size": "16384",
     "display": "gtk",
+    "vga": "qxl",
     "ftp_proxy": "{{env `ftp_proxy`}}",
     "headless": "",
     "hostname": "vagrant",

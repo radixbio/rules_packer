@@ -157,9 +157,15 @@ def _packer2_impl(ctx):
 
     # NOTE this is done due to weird bazel args quoting when the input has an = or > in it
     run = ctx.actions.declare_file("run-"+ctx.attr.name)
+
+    content = ""
+    if env.get("PACKER_LOG") == "1":
+        content = "PACKER_LOG=1 "
+    content = content + ctx.file._packer.path + " " + " ".join(args)
+
     ctx.actions.write(
         output = run,
-        content = ctx.file._packer.path + " " + " ".join(args),
+        content = content,
         is_executable = True
     )
 
