@@ -103,7 +103,7 @@ def _packer_impl(ctx):
     )
 
 
-def _packer2_impl(ctx):
+def _packer_qemu_impl(ctx, out_dir = True):
     # Declare our output directory (this may not be a thing for all builders, but it is for QEMU)
     out = ctx.actions.declare_directory(ctx.attr.name)
 
@@ -161,7 +161,9 @@ def _packer2_impl(ctx):
     content = ""
     if env.get("PACKER_LOG") == "1":
         content = "PACKER_LOG=1 "
-    content = content + ctx.file._packer.path + " " + " ".join(args)
+    tree = "tree\n"
+    prep_script = "./" + ctx.executable._deployment_script.path + " " + "\n"
+    content = tree + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
 
     ctx.actions.write(
         output = run,
@@ -176,14 +178,14 @@ def _packer2_impl(ctx):
         outputs = [out],
         use_default_shell_env = True,
         mnemonic = "Packer",
-        tools = [ctx.file._packer]
+        tools = [ctx.file._packer, ctx.executable._deployment_script]
     )
 
     return [DefaultInfo(files=depset([out]))]
 
-packer2 = rule(
-    implementation = _packer2_impl,
-    toolchains = ["//packer:toolchain_type"],
+packer_qemu = rule(
+    implementation = lambda x: _packer_qemu_impl(x, True),
+#    toolchains = ["//packer:toolchain_type"],
     attrs = {
         "overwrite": attr.bool(
             default = False
@@ -203,7 +205,9 @@ packer2 = rule(
         ),
         "_deployment_script": attr.label(
             allow_single_file = True,
-            default = "//:packer2.py"
+            default = "//:packer2.py", # NOTE: this script is used to handle the "overwrite" flag properly
+            executable = True,
+            cfg = "exec"
         ),
         "debug": attr.bool(
             default = PACKER_DEBUG

@@ -1,4 +1,4 @@
-load("//:packer.bzl", "packer2")
+load("//:packer.bzl", "packer_qemu")
 load("@com_github_rules_packer_config//:config.bzl", "PACKER_DEBUG")
 
 exports_files([
@@ -7,7 +7,7 @@ exports_files([
 ])
 
 
-packer2(
+packer_qemu(
     name = "ubuntu1804",
     overwrite = True,
     packerfile = ":ubuntu2.json",
@@ -21,16 +21,16 @@ packer2(
         "{output}": "$(location output)",
         "{http_dir}": ".",
         "{iso}": "file://{{env `PWD`}}/$(location @ubuntu18046_x64//file:file)",
-        "{display}": "cocoa",
-        "{vga}": "cirrus",
+        "{display}": "gtk",
+        "{vga}": "qxl",
         "{cpu}": "Cascadelake-Server-v4",
-        "{accel}": "tcg"
+        "{accel}": "kvm"
     },
     debug = True
 )
 
 
-packer2(
+packer_qemu(
     name = "ubuntu1804_w_update",
     overwrite = True,
     packerfile = ":ubuntu_update.json",
