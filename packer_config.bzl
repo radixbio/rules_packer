@@ -3,7 +3,7 @@ _LUT = {
     "aarch64": "arm64",
     "linux": "linux",
     "windows": "windows",
-    "x86_64": "amd64",
+    "amd64": "amd64",
     "i386": "386",       # Untested
     "arm": "arm",
     "ppc64": "ppc64le",   # Untested
