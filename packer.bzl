@@ -183,6 +183,7 @@ def _packer2_impl(ctx):
 
 packer2 = rule(
     implementation = _packer2_impl,
+    toolchains = ["//packer:toolchain_type"],
     attrs = {
         "overwrite": attr.bool(
             default = False
