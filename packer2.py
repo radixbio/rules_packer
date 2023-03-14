@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-#
-#
-#
 import hashlib
 from io import StringIO
 import json
