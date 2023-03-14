@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import hashlib
-from io import StringIO
 import json
 import os
 import platform
@@ -19,7 +18,7 @@ def packer_path():
     bin = {
         "Darwin": {
             "x86_64": os.path.abspath("{packer_osx_arm64_binary}"),
-            "arm64": os.path.abspath("{packer_osx_arm54_binary}")
+            "arm64": os.path.abspath("{packer_osx_arm64_binary}")
         },
         "Linux": {
             "x86_64": os.path.abspath("packer_linux_amd64_binary"),
@@ -35,3 +34,6 @@ def parse_input_json(json_path):
     with open(os.path.abspath(json_path), "rb") as f:
         ret = json.load(f)
     return ret
+
+if __name__ == "__main__":
+    print("hello world")
