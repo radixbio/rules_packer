@@ -10,7 +10,11 @@ packer_configure(
     qemu_version = "wip", # TODO: is it possible to load our own qemu like this?
     global_substitutions = {
         '"{$foo}"': "bar",
-        '{http_dir}': "."
+        '{http_dir}': ".",
+        '{accel}': "kvm",
+        '{vga}': "qxl",
+        '{display}': "gtk",
+        '{cpu}': "Cascadelake-Server-v4"
     },
     debug = True
 )

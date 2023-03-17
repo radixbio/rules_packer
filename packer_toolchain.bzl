@@ -1,12 +1,14 @@
+# REVIEW: is this even legit, if we can define global_substitutions?
 toochain_type(name = "toolchain_type")
 
 
-def _packer_toolchain_impl(ctx):
+def _packer_toolchain_impl(ctx): # TODO this should probably be a repository rule
     toolchain_info = platform_common.ToolchainInfo(
-        packercinfo = PackercInfo(
-            compiler_path = ctx.attr.compiler_path,
-            system_lib = ctx.attr.system_lib,
-            arch_flags = ctx.attr.arch_flags,
+        packerinfo = PackerInfo(
+            graphics = ctx.attr.graphics,
+            accelerator = ctx.attr.accelerator,
+            vga = ctx.attr.vga,
+            cpu = ctx.attr.cpu,
         ),
     )
     return [toolchain_info]
@@ -14,12 +16,11 @@ def _packer_toolchain_impl(ctx):
 packer_toolchain = rule(
     implementation = _packer_toolchain_impl,
     attrs = {
-        "packer_exe_name": attr.string(),
-        "discovered_accelerators": attr.string_list(),
+        "packer_exe_name": attr.string(), # NOTE: maybe can do just the path of the packer target
+        "packer_target": attr.label(),
+        "accelerator": attr.string(),
         "display": attr.string(),
         "graphics": attr.string(),
-        "host_arch": attr.string(),
         "tgt_arch": attr.string(),
-        "qemu": attr.label(),
     },
 )
