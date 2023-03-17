@@ -161,9 +161,10 @@ def _packer_qemu_impl(ctx, out_dir = True):
     content = ""
     if env.get("PACKER_LOG") == "1":
         content = "PACKER_LOG=1 "
-    tree = "tree\n"
-    prep_script = "./" + ctx.executable._deployment_script.path + " " + "\n"
-    content = tree + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
+    pre = "tree\n"
+    prep_script = "python " + ctx.executable._deployment_script.path + " " + out.path + "\n"
+    content = pre + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
+    print(out.path)
 
     ctx.actions.write(
         output = run,

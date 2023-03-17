@@ -6,7 +6,6 @@ def packer_dependencies():
     packer_exports = 'exports_files(["' + PACKER_BIN_NAME + '"])'
 
     (packer_url, packer_sha) = PACKER_SHAS[PACKER_OS][PACKER_ARCH]
-    print(packer_url)
     maybe(
         http_archive,
         name = "packer",

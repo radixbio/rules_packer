@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 import hashlib
 import json
 import os
+import sys
 import platform
 
 def sha256(fpath):
@@ -37,3 +38,4 @@ def parse_input_json(json_path):
 
 if __name__ == "__main__":
     print("hello world")
+    print(sys.argv)

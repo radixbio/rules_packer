@@ -8,7 +8,8 @@ load("@com_github_rules_packer//:packer_config.bzl", "packer_configure")
 packer_configure(
     packer_version = "1.8.6",
     global_substitutions = {
-        '"{$foo}"': "bar"
+        '"{$foo}"': "bar",
+        '{http_dir}': "."
     },
     debug = True
 )
