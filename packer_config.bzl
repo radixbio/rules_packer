@@ -60,6 +60,7 @@ def _packer_configure_impl(repository_ctx):
     PACKER_BIN_NAME="{packer_bin_name}"
     PACKER_GLOBAL_SUBS={global_substitutions}
     PACKER_DEBUG={debug}
+    PACKER_QEMU_VERSION="{qemu_version}"
     """.format(
         packer_version = packer_version,
         packer_shas = str(os_arch_sha),
@@ -67,8 +68,10 @@ def _packer_configure_impl(repository_ctx):
         arch = repository_ctx.os.arch,
         packer_bin_name = packer_bin_name,
         global_substitutions = repository_ctx.attr.global_substitutions,
-        debug = repository_ctx.attr.debug
+        debug = repository_ctx.attr.debug,
+        qemu_version = repository_ctx.attr.qemu_version
     ).replace(" ", "")
+    print(config_file_content)
 
     repository_ctx.file("config.bzl", config_file_content)
     repository_ctx.file("BUILD")
@@ -79,16 +82,20 @@ _packer_configure = repository_rule(
         "packer_version": attr.string(
             mandatory = True
         ),
+        "qemu_version": attr.string(
+            default = "7.2.0"
+        ),
         "global_substitutions": attr.string_dict(),
         "debug": attr.bool(
             default = False
         )
     }
 )
-def packer_configure(packer_version, global_substitutions, debug):
+def packer_configure(packer_version, qemu_version, global_substitutions, debug):
     _packer_configure(
         name = "com_github_rules_packer_config",
         packer_version = packer_version,
+        qemu_version = qemu_version,
         global_substitutions = global_substitutions,
         debug = debug
     )

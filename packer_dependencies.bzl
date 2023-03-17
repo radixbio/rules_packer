@@ -1,6 +1,12 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME")
+load("@com_github_rules_packer_config//:config.bzl",
+     "PACKER_VERSION",
+     "PACKER_SHAS",
+     "PACKER_OS",
+     "PACKER_ARCH",
+     "PACKER_BIN_NAME",
+     "PACKER_QEMU_VERSION")
 
 def packer_dependencies():
     packer_exports = 'exports_files(["' + PACKER_BIN_NAME + '"])'
@@ -21,3 +27,10 @@ def packer_dependencies():
         strip_prefix = "bazel-lib-1.28.0",
         url = "https://github.com/aspect-build/bazel-lib/releases/download/v1.28.0/bazel-lib-v1.28.0.tar.gz",
     )
+
+    #maybe(
+    #    http_archive,
+    #    name = "qemu_linux_x64",
+    #    strip_prefix = "qemu-".format(PACKER_QEMU_VERSION),
+    #    url = "https://download.qemu.org/qemu-{}.tar.xz".format(PACKER_QEMU_VERSION)
+    #)
