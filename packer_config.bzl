@@ -71,7 +71,6 @@ def _packer_configure_impl(repository_ctx):
         debug = repository_ctx.attr.debug,
         qemu_version = repository_ctx.attr.qemu_version
     ).replace(" ", "")
-    print(config_file_content)
 
     repository_ctx.file("config.bzl", config_file_content)
     repository_ctx.file("BUILD")
