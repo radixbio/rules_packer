@@ -4,17 +4,17 @@
 ** Rules
 
 ** Configuration
-*** TODO Linux
-NOTE: this does not appear to work
+*** TODO Linux headless
 #+begin_src python
 packer_configure(
     packer_version = "1.8.6",
     qemu_version = "wip", # TODO: is it possible to load our own qemu like this?
     global_substitutions = {
+        '{headless}': "false",
         '{http_dir}': ".",
         '{accel}': "kvm",
-        '{vga}': "qxl",
-        '{display}': "gtk",
+        '{vga}': "none",
+        '{display}': "none",
         '{cpu}': "Cascadelake-Server-v4" # NOTE: change this to whatever your virtualization target is
     },
     debug = True
@@ -44,6 +44,8 @@ using =cocoa= and =cirrus= for the =qemuargs= =display= and =vga= arguments appe
 
 * TODO Usage
 github action to publish this needs to be set up in order for the usual =http_archive= bazel installation to work
+#+INCLUDE: "./WORKSPACE" :lines 5-32
+#+transclude: [[WORKSPACE]]
 #+begin_src python
 load("@com_github_rules_packer//:packer_config.bzl", "packer_configure")
 
