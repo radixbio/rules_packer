@@ -146,6 +146,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
         )
         args.append("-var-file=" + var_file.path)
 
+    # pack the vars command line arguments
     vars = {}
     vars_items = {k: v for k, v in ctx.attr.vars.items()}
     vars.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in vars_items.items()})
@@ -167,17 +168,18 @@ def _packer_qemu_impl(ctx, out_dir = True):
     content = ""
     if env.get("PACKER_LOG") == "1":
         content = "PACKER_LOG=1 "
-    pre = "tree\n"
+    pre = "env\n"
     prep_script = "python " + ctx.executable._deployment_script.path + " " + out.path + "\n"
     content = pre + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
-    print(out.path)
 
+    # pump the command into a file
     ctx.actions.write(
         output = run,
         content = content,
         is_executable = True
     )
 
+    # and execute it
     ctx.actions.run(
         executable = run,
         env = env,
