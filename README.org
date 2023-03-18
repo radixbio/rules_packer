@@ -1,1 +1,72 @@
 #+title: rules_packer
+
+* Installation
+** Rules
+
+** Configuration
+*** TODO Linux
+NOTE: this does not appear to work
+#+begin_src python
+packer_configure(
+    packer_version = "1.8.6",
+    qemu_version = "wip", # TODO: is it possible to load our own qemu like this?
+    global_substitutions = {
+        '{http_dir}': ".",
+        '{accel}': "kvm",
+        '{vga}': "qxl",
+        '{display}': "gtk",
+        '{cpu}': "Cascadelake-Server-v4" # NOTE: change this to whatever your virtualization target is
+    },
+    debug = True
+)
+#+end_src
+*** MacOS
+#+begin_src python
+packer_configure(
+    packer_version = "1.8.6",
+    qemu_version = "wip", # TODO: is it possible to load our own qemu like this?
+    global_substitutions = {
+        '{http_dir}': ".",
+        '{accel}': "tcg", # TODO: confirm hvm works here
+        '{vga}': "cirrus",
+        '{display}': "cocoa",
+        '{cpu}': "Cascadelake-Server-v4"
+    },
+    debug = True # This enables better errors in packer, but is not needed (PACKER_LOG=1)
+)
+
+#+end_src
+** Enabling non-headless (GUI) windows on the host system
+*** Linux
+As of now, this doesn't seem to work
+*** MacOS
+using =cocoa= and =cirrus= for the =qemuargs= =display= and =vga= arguments appears to let this work on MacOS
+
+* TODO Usage
+github action to publish this needs to be set up in order for the usual =http_archive= bazel installation to work
+#+begin_src python
+load("@com_github_rules_packer//:packer_config.bzl", "packer_configure")
+
+packer_configure(
+    packer_version = "1.8.6",
+    qemu_version = "wip", # TODO: is it possible to load our own qemu like this?
+    global_substitutions = {
+        '"{$foo}"': "bar",
+        '{http_dir}': ".",
+        '{accel}': "kvm",
+        '{vga}': "qxl",
+        '{display}': "gtk",
+        '{cpu}': "Cascadelake-Server-v4"
+    },
+    debug = True
+)
+
+
+load("@com_github_rules_packer//:packer_dependencies.bzl", "packer_dependencies")
+
+packer_dependencies()
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+
+aspect_bazel_lib_dependencies()
+#+end_src
