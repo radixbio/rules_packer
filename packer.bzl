@@ -146,6 +146,12 @@ def _packer_qemu_impl(ctx, out_dir = True):
         )
         args.append("-var-file=" + var_file.path)
 
+    vars = {}
+    vars_items = {k: v for k, v in ctx.attr.vars.items()}
+    vars.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in vars_items.items()})
+    vars = ' '.join(["-var " + '"' + k + '=' + v + '"' for k, v in vars.items()])
+    args.append(vars)
+
     # as well as the actual packerfile with $(location)
     packerfile = ctx.actions.declare_file(ctx.attr.name + ".pkr")
     ctx.actions.expand_template(
