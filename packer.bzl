@@ -177,7 +177,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
         env = env,
         inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
         outputs = [out],
-        use_default_shell_env = True,
+        use_default_shell_env = False,
         mnemonic = "Packer",
         tools = [ctx.file._packer, ctx.executable._deployment_script]
     )
