@@ -4,16 +4,16 @@
 ** Rules
 
 ** Configuration
-*** TODO Linux headless
+*** Linux headless
 #+begin_src python
 packer_configure(
     packer_version = "1.8.6",
     qemu_version = "wip", # TODO: is it possible to load our own qemu like this?
     global_substitutions = {
-        '{headless}': "false",
+        '{headless}': "true",
         '{http_dir}': ".",
         '{accel}': "kvm",
-        '{vga}': "none",
+        '{vga}': "qxl",
         '{display}': "none",
         '{cpu}': "Cascadelake-Server-v4" # NOTE: change this to whatever your virtualization target is
     },

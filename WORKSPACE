@@ -13,7 +13,8 @@ packer_configure(
         '{http_dir}': ".",
         '{accel}': "kvm",
         '{vga}': "qxl",
-        '{display}': "gtk",
+        '{display}': "none",
+        '{headless}': "true",
         '{cpu}': "Cascadelake-Server-v4"
     },
     debug = True

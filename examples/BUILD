@@ -15,16 +15,9 @@ packer_qemu(
     deps = glob(["scripts/**"]) + ["http/preseed.cfg", "@ubuntu18046_x64//file:file"],
     substitutions = {
         "{preseed}": "$(location http/preseed.cfg)",
-#        "{headless}": "false" if PACKER_DEBUG else "true",
-        "{headless}": "false",
         "{scripts}": ",".join(["$(location scripts/" + x + ")" for x in ["vagrant.sh", "sshd.sh", "update.sh", "packages.sh", "cleanup.sh"]]),
         "{output}": "$(location output)",
-        "{http_dir}": ".",
         "{iso}": "file://{{env `PWD`}}/$(location @ubuntu18046_x64//file:file)",
-        "{display}": "gtk",
-        "{vga}": "qxl",
-        "{cpu}": "Cascadelake-Server-v4",
-        "{accel}": "kvm"
     },
     debug = True
 )
