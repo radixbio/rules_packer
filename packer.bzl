@@ -171,7 +171,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
     if env.get("PACKER_LOG") == "1":
         content = "PACKER_LOG=1 "
     pre = "env\n"
-    prep_script = "python " + ctx.executable._deployment_script.path + " " + var_line + " " + packerfile.path + " " + out.path + "\n"
+    prep_script = "python " + ctx.executable._deployment_script.path + " " + var_line + " " + ctx.attr.overwrite + " " + packerfile.path + " " + out.path + "\n"
     content = pre + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
 
     # pump the command into a file

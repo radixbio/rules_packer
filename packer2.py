@@ -41,6 +41,7 @@ if __name__ == "__main__":
     print("hello world")
     parser = argparse.ArgumentParser()
     parser.add_argument("--var_file")
+    parser.add_argument("overwrite")
     parser.add_argument("packer_json")
     parser.add_argument("output_dir")
     args = parser.parse_args()
