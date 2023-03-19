@@ -137,6 +137,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
 
     # and support for var files with $(location)
     var_file = None
+    var_line = None
     if ctx.attr.var_file:
         var_file = ctx.actions.declare_file(ctx.attr.name + ".var")
         ctx.actions.expand_template(
@@ -145,6 +146,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
             substitutions = substitutions
         )
         args.append("-var-file=" + var_file.path)
+        var_line = "--var_file " + var_file.path
 
     # pack the vars command line arguments
     vars = {}
@@ -169,7 +171,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
     if env.get("PACKER_LOG") == "1":
         content = "PACKER_LOG=1 "
     pre = "env\n"
-    prep_script = "python " + ctx.executable._deployment_script.path + " " + out.path + "\n"
+    prep_script = "python " + ctx.executable._deployment_script.path + " " + var_line + " " + packerfile.path + " " + out.path + "\n"
     content = pre + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
 
     # pump the command into a file

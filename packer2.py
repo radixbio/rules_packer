@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import platform
+import argparse
 
 def sha256(fpath):
     BYTES_MAGIC = 65536
@@ -38,4 +39,9 @@ def parse_input_json(json_path):
 
 if __name__ == "__main__":
     print("hello world")
-    print(sys.argv)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--var_file")
+    parser.add_argument("packer_json")
+    parser.add_argument("output_dir")
+    args = parser.parse_args()
+    print(args)
