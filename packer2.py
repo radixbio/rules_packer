@@ -45,4 +45,9 @@ if __name__ == "__main__":
     parser.add_argument("packer_json")
     parser.add_argument("output_dir")
     args = parser.parse_args()
+    # :P
+    if args.overwrite == "False":
+        args.overwrite = False
+    if args.overwrite == "True":
+        args.overwrite = True
     print(args)
