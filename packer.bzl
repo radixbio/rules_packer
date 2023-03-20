@@ -122,22 +122,12 @@ def _packer_qemu_impl(ctx, out_dir = True):
         env_items.update({"{output}": out.path})
     env.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in env_items.items()})
 
-    # packer build...
-    args = []
-    args.append("build")
-
-    # which may need to be overwritten...
-    if ctx.attr.overwrite:
-        args.append("-force")
-
     # packer has a debug thing ...
     if ctx.attr.debug:
         env.update({"PACKER_LOG": "1"})
-        args.append("-debug")
 
     # and support for var files with $(location)
     var_file = None
-    var_line = None
     if ctx.attr.var_file:
         var_file = ctx.actions.declare_file(ctx.attr.name + ".var")
         ctx.actions.expand_template(
@@ -145,15 +135,9 @@ def _packer_qemu_impl(ctx, out_dir = True):
             output = var_file,
             substitutions = substitutions
         )
-        args.append("-var-file=" + var_file.path)
-        var_line = "--var_file " + var_file.path
 
-    # pack the vars command line arguments
-    vars = {}
-    vars_items = {k: v for k, v in ctx.attr.vars.items()}
-    vars.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in vars_items.items()})
-    vars = ' '.join(["-var " + '"' + k + '=' + v + '"' for k, v in vars.items()])
-    args.append(vars)
+    # pack the vars command line arguments, substituting $(location)
+    cli_vars = {expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in ctx.attr.vars.items()} if len(ctx.attr.vars) > 0 else {}
 
     # as well as the actual packerfile with $(location)
     packerfile = ctx.actions.declare_file(ctx.attr.name + ".pkr")
@@ -162,22 +146,39 @@ def _packer_qemu_impl(ctx, out_dir = True):
         output = packerfile,
         substitutions = substitutions
     )
-    args.append(packerfile.path)
 
     # NOTE this is done due to weird bazel args quoting when the input has an = or > in it
     run = ctx.actions.declare_file("run-"+ctx.attr.name)
 
-    content = ""
-    if env.get("PACKER_LOG") == "1":
-        content = "PACKER_LOG=1 "
-    pre = "env\n"
-    prep_script = "python " + ctx.executable._deployment_script.path + " " + var_line + " " + ctx.attr.overwrite + " " + packerfile.path + " " + out.path + "\n"
-    content = pre + prep_script + content + ctx.file._packer.path + " " + " ".join(args)
+    pyscript_content = """
+      "overwrite": {overwrite},
+      "packerfile": "{packerfile}",
+      "out_dir": "{out_dir}",
+      "var_file": "{var_file}",
+      "cli_vars": {cli_vars},
+      "packer_path": "{packer_path}"
+    """.format(
+        overwrite = str(ctx.attr.overwrite).lower(),
+        packerfile = packerfile.path,
+        out_dir = out.path,
+        cli_vars = cli_vars,
+        var_file = var_file.path if var_file else "null",
+        packer_path = ctx.file._packer.path
+    )
+    pyscript_content = '{' + pyscript_content + '}'
+    pyscript_input = ctx.actions.declare_file("run-" + ctx.attr.name + ".input.json")
+
+    ctx.actions.write(
+        output = pyscript_input,
+        content = pyscript_content,
+    )
+
+    script = "python " + ctx.executable._deployment_script.path + " " + pyscript_input.path + "\n"
 
     # pump the command into a file
     ctx.actions.write(
         output = run,
-        content = content,
+        content = script,
         is_executable = True
     )
 
@@ -185,7 +186,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
     ctx.actions.run(
         executable = run,
         env = env,
-        inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps, # Look, i know it's stupid
+        inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps + [pyscript_input], # Look, i know it's stupid
         outputs = [out],
         use_default_shell_env = False,
         mnemonic = "Packer",
