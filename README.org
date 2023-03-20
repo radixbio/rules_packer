@@ -72,3 +72,13 @@ load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
 
 aspect_bazel_lib_dependencies()
 #+end_src
+** Rule usage
+There are several special variables and facilities for getting the packer experience to be more ergonomic
+|---------------------+----------------------------------------------------+---------------------------------------|
+| interpolation       | meaning                                            | where                                 |
+|---------------------+----------------------------------------------------+---------------------------------------|
+| $(location depfile) | any file in deps can be accessed this way          | in =substitutions= or =vars= or =env= |
+| $(location output)  | the output directory (packer's =output_directory=) | in =substitutions= or =vars=          |
+| {iso_sha}           |                                                    |                                       |
+| {input_img}         | the target path of the =input_img= argument        | in =substitutions= or =vars= or =env= |
+| {iso}               | the substitution of the input_img                  | in your packerfile or varfile         |
