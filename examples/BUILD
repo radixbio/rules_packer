@@ -12,12 +12,15 @@ packer_qemu(
     overwrite = True,
     packerfile = ":ubuntu2.json",
     var_file = ":ubuntu1804.json",
-    deps = glob(["scripts/**"]) + ["http/preseed.cfg", "@ubuntu18046_x64//file:file"],
+    input_img = "@ubuntu18046_x64//file",
+    deps = glob(["scripts/**"]) + ["http/preseed.cfg"],
     substitutions = {
         "{preseed}": "$(location http/preseed.cfg)",
         "{scripts}": ",".join(["$(location scripts/" + x + ")" for x in ["vagrant.sh", "sshd.sh", "update.sh", "packages.sh", "cleanup.sh"]]),
         "{output}": "$(location output)",
-        "{iso}": "file://{{env `PWD`}}/$(location @ubuntu18046_x64//file:file)",
+    },
+    vars = {
+        "foo": "bar"
     },
     debug = True
 )
@@ -28,7 +31,7 @@ packer_qemu(
     overwrite = True,
     packerfile = ":ubuntu_update.json",
     var_file = ":ubuntu_update.var.json",
-    deps = [":ubuntu1804"],
+    input_img = ":ubuntu1804",
     substitutions = {
         "{output}": "$(location output)",
         "{iso_url}": "file://{{ env `PWD` }}/$(location ubuntu1804)/ubuntu1804",

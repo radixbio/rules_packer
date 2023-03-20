@@ -1,6 +1,6 @@
 {
     "headless": "{headless}",
-    "iso_url": "{iso_url}",
+    "iso": "{iso}",
     "output": "{output}",
     "display": "none",
     "vm_name": "{name}"

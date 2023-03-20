@@ -103,24 +103,47 @@ def _packer_impl(ctx):
     )
 
 
-def _packer_qemu_impl(ctx, out_dir = True):
+
+def _img_path_subst(fmtstring, replace, replace_val):
+    if fmtstring.find(replace) != -1:
+        fst = fmtstring[:fmtstring.find(replace)]
+        snd = fmtstring[fmtstring.find(replace) + len(replace):]
+        return fst + replace_val + snd
+    else:
+        return fmtstring
+
+def _subst(ctx, in_dict, deps, input_img, input_img_key, add_subst = False):
+    cp = {k: v for k, v in in_dict.items()}
+    out_dict = []
+    img_path = _img_path_subst(ctx.attr.input_img_fmtstring, "{input_img}", input_img.files.to_list()[0].path)
+    for k, v in cp.items():
+        k_subs = expand_locations(ctx, k, deps)
+        v_subs = _img_path_subst(expand_locations(ctx, v, deps + [input_img]), input_img_key, img_path)
+        out_dict.append((k_subs, v_subs))
+    out_dict = dict(out_dict)
+    if add_subst:
+        out_dict.update({input_img_key: img_path})
+    return out_dict
+
+def _packer_qemu_impl(ctx):
     # Declare our output directory (this may not be a thing for all builders, but it is for QEMU)
     out = ctx.actions.declare_directory(ctx.attr.name)
+    if len(ctx.attr.input_img.files.to_list()) != 1:
+        fail("input_img has multiple files: " + ctx.attr.input_img.files.to_list())
 
+    img_path = _img_path_subst(ctx.attr.input_img_fmtstring, "{input_img}", ctx.attr.input_img.files.to_list()[0].path)
     # declare our substitutions, merge with the global map, and splice in output / $(locations)
-    substitutions = {}
-    substitutions.update(PACKER_GLOBAL_SUBS)
     subst_items = {k: v for k, v in ctx.attr.substitutions.items()}
+    subst_items.update(PACKER_GLOBAL_SUBS)
     if subst_items.get("{output}") == "$(location output)":
         subst_items.update({"{output}": out.path})
-    substitutions.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in subst_items.items()})
+    substitutions = _subst(ctx, subst_items, ctx.attr.deps, ctx.attr.input_img, ctx.attr.input_img_subs_key, True)
 
     # declare our environent, splice in output / $(locations)
-    env = {}
     env_items = {k: v for k, v in ctx.attr.env.items()}
     if env_items.get("{output}") == "$(location output)":
         env_items.update({"{output}": out.path})
-    env.update({expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in env_items.items()})
+    env = _subst(ctx, env_items, ctx.attr.deps, ctx.attr.input_img, ctx.attr.input_img_subs_key)
 
     # packer has a debug thing ...
     if ctx.attr.debug:
@@ -136,8 +159,8 @@ def _packer_qemu_impl(ctx, out_dir = True):
             substitutions = substitutions
         )
 
-    # pack the vars command line arguments, substituting $(location)
-    cli_vars = {expand_locations(ctx, k, ctx.attr.deps): expand_locations(ctx, v, ctx.attr.deps) for k, v in ctx.attr.vars.items()} if len(ctx.attr.vars) > 0 else {}
+    # pack the vars command line arguments, substituting $(location) and {input_img}
+    cli_vars = _subst(ctx, ctx.attr.vars, ctx.attr.deps, ctx.attr.input_img, ctx.attr.input_img_subs_key)
 
     # as well as the actual packerfile with $(location)
     packerfile = ctx.actions.declare_file(ctx.attr.name + ".pkr")
@@ -148,7 +171,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
     )
 
     # NOTE this is done due to weird bazel args quoting when the input has an = or > in it
-    run = ctx.actions.declare_file("run-"+ctx.attr.name)
+    run = ctx.actions.declare_file("run-" + ctx.attr.name)
 
     pyscript_content = """
       "overwrite": {overwrite},
@@ -186,7 +209,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
     ctx.actions.run(
         executable = run,
         env = env,
-        inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps + [pyscript_input], # Look, i know it's stupid
+        inputs = [x for x in [packerfile, var_file] if x != None] + ctx.files.deps + [pyscript_input] + ctx.attr.input_img.files.to_list(), # Look, i know it's stupid
         outputs = [out],
         use_default_shell_env = False,
         mnemonic = "Packer",
@@ -196,7 +219,7 @@ def _packer_qemu_impl(ctx, out_dir = True):
     return [DefaultInfo(files=depset([out]))]
 
 packer_qemu = rule(
-    implementation = lambda x: _packer_qemu_impl(x, True),
+    implementation = _packer_qemu_impl,
 #    toolchains = ["//packer:toolchain_type"],
     attrs = {
         "overwrite": attr.bool(
@@ -208,6 +231,16 @@ packer_qemu = rule(
         ),
         "var_file": attr.label(
             allow_single_file = True,
+        ),
+        "input_img": attr.label(
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "input_img_fmtstring": attr.string(
+            default = "file://{{ env `PWD` }}/{input_img}",
+        ),
+        "input_img_subs_key": attr.string(
+            default = "{iso}"
         ),
         "substitutions": attr.string_dict(), # NOTE: Substitutes in the templates
         "vars": attr.string_dict(), # NOTE: passed as CLI args

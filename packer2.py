@@ -50,7 +50,6 @@ class Config(NamedTuple):
         return list(filter(lambda x: x is not None, cmd))
 
 
-
 def parse_input_json(json_path):
     ret = None
     with open(os.path.abspath(json_path), "rb") as f:
@@ -104,7 +103,7 @@ def invoke_packer(config, qemu_path):
         path = path + ":" + qemu_path
 
     env = dict(copy.deepcopy(os.environ))
-    env.update({"PATH": path})
+    env.update({"PATH": path, "PWD": os.getcwd()})
     log.debug("with PATH: " + path)
     log.debug("with ENV: " + str(env))
     proc = sp.run(' '.join(config.cli()), shell = True, env = env, cwd = os.getcwd())
