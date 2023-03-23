@@ -264,7 +264,9 @@ packer_qemu = rule(
         "input_img_subs_key": attr.string(
             default = "{iso}"
         ),
-        "sha256_var_name": attr.string(),
+        "sha256_var_name": attr.string(
+            default = "iso_checksum"
+        ),
         "substitutions": attr.string_dict(), # NOTE: Substitutes in the templates
         "vars": attr.string_dict(), # NOTE: passed as CLI args
         "env": attr.string_dict(), # NOTE: passed to the packer command
