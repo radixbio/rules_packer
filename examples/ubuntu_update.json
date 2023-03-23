@@ -3,7 +3,7 @@
     {
       "disk_image": true,
       "iso_url": "{{ user `iso` }}",
-      "iso_checksum": "sha256:5943ad657bc61d94a362ffd578d9c351fed59e0d4e0b04ca62a16acd50ce8837",
+      "iso_checksum": "{{ user `iso_checksum_type` }}:{{ user `iso_checksum` }}",
       "headless": "{{ user `headless` }}",
       "type": "qemu",
       "vm_name": "{{ user `vm_name` }}",
@@ -27,11 +27,13 @@
     }
   ],
   "variables": {
-    "iso": "file://{{ env `PWD` }}/output/ubuntu1804",
+    "iso": "file://{{ env `PWD` }}/ubuntu/ubuntu1804",
     "memory": "512",
     "cpus": "1",
     "display": "gtk",
     "headless": "true",
+    "iso_checksum": "f294fe0d4cd1c28233228363623481079b87e6ffb0504f3e4d7c1f494c77e618",
+    "iso_checksum_type": "sha256",
     "output": "stage2",
     "vm_name": "ubuntu_stage2"
   }

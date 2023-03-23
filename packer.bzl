@@ -1,5 +1,7 @@
 load("@com_github_rules_packer_config//:config.bzl", "PACKER_VERSION", "PACKER_SHAS", "PACKER_OS", "PACKER_ARCH", "PACKER_BIN_NAME", "PACKER_GLOBAL_SUBS", "PACKER_DEBUG")
 load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations")
+load("@bazel_skylib//lib:paths.bzl", "paths")
+
 #load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 #
 #def assemble_packer(
@@ -115,7 +117,15 @@ def _img_path_subst(fmtstring, replace, replace_val):
 def _subst(ctx, in_dict, deps, input_img, input_img_key, add_subst = False):
     cp = {k: v for k, v in in_dict.items()}
     out_dict = []
-    img_path = _img_path_subst(ctx.attr.input_img_fmtstring, "{input_img}", input_img.files.to_list()[0].path)
+
+    path = input_img.files.to_list()[0]
+    if path.is_directory:
+        path = paths.join(path.path, path.basename)
+    else:
+        path = path.path
+
+    img_path = _img_path_subst(ctx.attr.input_img_fmtstring, "{input_img}", path)
+
     for k, v in cp.items():
         k_subs = expand_locations(ctx, k, deps)
         v_subs = _img_path_subst(expand_locations(ctx, v, deps + [input_img]), input_img_key, img_path)
@@ -131,7 +141,15 @@ def _packer_qemu_impl(ctx):
     if len(ctx.attr.input_img.files.to_list()) != 1:
         fail("input_img has multiple files: " + ctx.attr.input_img.files.to_list())
 
-    img_path = _img_path_subst(ctx.attr.input_img_fmtstring, "{input_img}", ctx.attr.input_img.files.to_list()[0].path)
+    # this may be a file (http_file) or a directory (deps on another packer_qemu rule)
+    path = ctx.attr.input_img.files.to_list()[0]
+    if path.is_directory:
+        path = paths.join(path.path, path.basename)
+    else:
+        path = path.path
+
+    img_path = _img_path_subst(ctx.attr.input_img_fmtstring, "{input_img}", path)
+
     # declare our substitutions, merge with the global map, and splice in output / $(locations)
     subst_items = {k: v for k, v in ctx.attr.substitutions.items()}
     subst_items.update(PACKER_GLOBAL_SUBS)
@@ -179,14 +197,18 @@ def _packer_qemu_impl(ctx):
       "out_dir": "{out_dir}",
       "var_file": "{var_file}",
       "cli_vars": {cli_vars},
-      "packer_path": "{packer_path}"
+      "packer_path": "{packer_path}",
+      "sha256_var_name": "{sha256_var_name}",
+      "iso_img_loc": "{iso_img_loc}"
     """.format(
         overwrite = str(ctx.attr.overwrite).lower(),
         packerfile = packerfile.path,
         out_dir = out.path,
         cli_vars = cli_vars,
         var_file = var_file.path if var_file else "null",
-        packer_path = ctx.file._packer.path
+        packer_path = ctx.file._packer.path,
+        sha256_var_name = ctx.attr.sha256_var_name if ctx.attr.sha256_var_name else "null",
+        iso_img_loc = path
     )
     pyscript_content = '{' + pyscript_content + '}'
     pyscript_input = ctx.actions.declare_file("run-" + ctx.attr.name + ".input.json")
@@ -242,6 +264,7 @@ packer_qemu = rule(
         "input_img_subs_key": attr.string(
             default = "{iso}"
         ),
+        "sha256_var_name": attr.string(),
         "substitutions": attr.string_dict(), # NOTE: Substitutes in the templates
         "vars": attr.string_dict(), # NOTE: passed as CLI args
         "env": attr.string_dict(), # NOTE: passed to the packer command

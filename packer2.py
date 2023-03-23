@@ -2,7 +2,7 @@
 import hashlib
 import json
 import os
-from os.path import isfile
+from os.path import isdir, isfile
 import sys
 import platform
 import argparse
@@ -15,11 +15,14 @@ import copy
 def sha256(fpath):
     BYTES_MAGIC = 65536
     sha = hashlib.sha256()
+    if os.path.isdir(fpath): # HACK: since we declare an output directory, but sometimes give files (http_file)
+        fpath = fpath + os.path.sep + os.path.basename(fpath)
     with open(fpath, "rb") as f:
         d = f.read(BYTES_MAGIC)
         while len(d) > 0:
             sha.update(d)
             d = f.read(BYTES_MAGIC)
+    return sha.hexdigest()
 
 
 class Config(NamedTuple):
@@ -30,6 +33,8 @@ class Config(NamedTuple):
     var_file: str
     cli_vars: dict[str, str]
     packer_path: str
+    sha256_var_name: str
+    iso_img_loc: str
 
     @staticmethod
     def from_json(args):
@@ -45,6 +50,7 @@ class Config(NamedTuple):
                "build",
                "-force" if self.overwrite else None,
                "-var-file=" + self.var_file if self.var_file else None,
+               "-var " + self.sha256_var_name + "=" + sha256(self.iso_img_loc) if self.sha256_var_name else None,
                *["-var " + '"' + k + '=' + v + '"' for k, v in self.cli_vars.items()],
                self.packerfile]
         return list(filter(lambda x: x is not None, cmd))
@@ -56,6 +62,7 @@ def parse_input_json(json_path):
         input = f.read()
         ret = json.loads(input, object_hook=Config.from_json)
     return ret
+
 
 def deal_with_existing_out_dir(path):
     # deal with output directory
@@ -108,6 +115,7 @@ def invoke_packer(config, qemu_path):
     log.debug("with ENV: " + str(env))
     proc = sp.run(' '.join(config.cli()), shell = True, env = env, cwd = os.getcwd())
     return proc
+
 
 if __name__ == "__main__":
     log.basicConfig(level=log.DEBUG)

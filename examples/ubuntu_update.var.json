@@ -3,5 +3,6 @@
     "iso": "{iso}",
     "output": "{output}",
     "display": "none",
-    "vm_name": "{name}"
+    "vm_name": "{name}",
+    "iso_checksum_type": "sha256"
 }

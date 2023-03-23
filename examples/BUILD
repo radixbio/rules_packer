@@ -32,8 +32,8 @@ packer_qemu(
     packerfile = ":ubuntu_update.json",
     var_file = ":ubuntu_update.var.json",
     input_img = ":ubuntu1804",
+    sha256_var_name = "iso_checksum",
     substitutions = {
         "{output}": "$(location output)",
-        "{iso_url}": "file://{{ env `PWD` }}/$(location ubuntu1804)/ubuntu1804",
     }
 )
