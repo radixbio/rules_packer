@@ -40,7 +40,7 @@ packer_configure(
 *** Linux
 As of now, this doesn't seem to work
 *** MacOS
-using =cocoa= and =cirrus= for the =qemuargs= =display= and =vga= arguments appears to let this work on MacOS
+using =cocoa= and =cirrus= for the =qemuargs='s =display= and =vga= arguments appears to let this work on MacOS
 
 * TODO Usage
 github action to publish this needs to be set up in order for the usual =http_archive= bazel installation to work
