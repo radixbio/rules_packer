@@ -114,7 +114,7 @@ def _packer_qemu_impl(ctx):
         content = pyscript_content,
     )
 
-    script = "python " + ctx.executable._deployment_script.path + " " + pyscript_input.path + "\n"
+    script = "#!/bin/bash\n" + "python " + ctx.executable._deployment_script.path + " " + pyscript_input.path + "\n"
 
     # pump the command into a file
     ctx.actions.write(
